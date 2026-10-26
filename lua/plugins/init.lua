@@ -100,6 +100,8 @@ return {
         "gomod",
         "gosum",
         "gowork",
+        -- templ highlights inherit go; injects html/css/js
+        "templ",
       },
     },
   },

@@ -115,6 +115,21 @@ vim.api.nvim_create_autocmd("LspAttach", {
 -- emmet: abbreviation expansion (div.foo>ul>li*3<C-y>, or via completion) in
 -- html/css/jsx/tsx. It emits className= automatically in the jsx filetypes.
 vim.lsp.config("emmet_language_server", {
+  -- lspconfig defaults + templ (not in the default list)
+  filetypes = {
+    "css",
+    "eruby",
+    "html",
+    "htmldjango",
+    "javascriptreact",
+    "less",
+    "pug",
+    "sass",
+    "scss",
+    "typescriptreact",
+    "htmlangular",
+    "templ",
+  },
   init_options = {
     showExpandedAbbreviation = "always",
     showAbbreviationSuggestions = true,
@@ -131,7 +146,17 @@ vim.lsp.config("emmet_language_server", {
 vim.lsp.config("tailwindcss", {
   -- only apps/web is a tailwind project; rooting at the monorepo makes the
   -- server scan every workspace (and every worktree copy) for content files.
-  root_markers = { "tailwind.config.ts", "tailwind.config.js", "tailwind.config.cjs" },
+  root_dir = function(bufnr, on_dir)
+    local fname = vim.api.nvim_buf_get_name(bufnr)
+    local root = vim.fs.root(fname, { "tailwind.config.ts", "tailwind.config.js", "tailwind.config.cjs" })
+    -- templ projects usually run Tailwind v4 (no config file); root at Go module
+    if not root and vim.bo[bufnr].filetype == "templ" then
+      root = vim.fs.root(fname, { "go.work", "go.mod" })
+    end
+    if root then
+      on_dir(root)
+    end
+  end,
   settings = {
     tailwindCSS = {
       validate = true,
@@ -158,5 +183,5 @@ vim.lsp.config("tailwindcss", {
   },
 })
 
-local servers = { "html", "cssls", "vtsls", "gopls", "emmet_language_server", "tailwindcss" }
+local servers = { "html", "cssls", "vtsls", "gopls", "emmet_language_server", "tailwindcss", "templ", "htmx" }
 vim.lsp.enable(servers)
